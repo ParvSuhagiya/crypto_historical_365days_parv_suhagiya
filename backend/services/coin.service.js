@@ -300,3 +300,131 @@ const bulkCreateCoins = async (items) => {
     throw err;
   }
 };
+
+
+const bulkUpdateCoins = async (updates) => {
+  try {
+    if (!Array.isArray(updates) || updates.length === 0) {
+      const e = new Error('Request body must be a non-empty array of { id, data }');
+      e.statusCode = 400;
+      throw e;
+    }
+    let modified = 0;
+    for (const row of updates) {
+      if (!row.id || !row.data) {
+        const e = new Error('Each item must have id and data');
+        e.statusCode = 400;
+        throw e;
+      }
+      if (!isValidObjectId(row.id)) {
+        const e = new Error('Invalid id in bulk update');
+        e.statusCode = 400;
+        throw e;
+      }
+      const r = await Coin.updateOne({ _id: row.id, ...notDeleted }, { $set: row.data });
+      modified += r.modifiedCount;
+    }
+    return { modifiedCount: modified };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const bulkDeleteCoins = async (ids) => {
+  try {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      const e = new Error('Request body must be a non-empty array of ids');
+      e.statusCode = 400;
+      throw e;
+    }
+    const valid = ids.filter((id) => isValidObjectId(id));
+    const r = await Coin.updateMany({ _id: { $in: valid }, ...notDeleted }, { $set: { isDeleted: true } });
+    return { modifiedCount: r.modifiedCount };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getByName = async (coinName, page, limit) => {
+  try {
+    const filter = { ...notDeleted, name: { $regex: new RegExp(`^${escapeRe(coinName)}$`, 'i') } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getBySymbol = async (symbol, page, limit) => {
+  try {
+    const filter = { ...notDeleted, symbol: { $regex: new RegExp(`^${escapeRe(symbol)}$`, 'i') } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getByRank = async (rank, page, limit) => {
+  try {
+    const r = Number(rank);
+    if (!Number.isFinite(r)) {
+      const e = new Error('Invalid rank');
+      e.statusCode = 400;
+      throw e;
+    }
+    const filter = { ...notDeleted, rank: r };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getByMonth = async (month, page, limit) => {
+  try {
+    if (!MONTH_REGEX.test(month)) {
+      const e = new Error('month must be YYYY-MM');
+      e.statusCode = 400;
+      throw e;
+    }
+    const filter = { ...notDeleted, month };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};

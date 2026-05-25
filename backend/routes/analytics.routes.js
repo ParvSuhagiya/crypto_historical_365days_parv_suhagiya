@@ -17,5 +17,8 @@ router.get('/volume/spike', analyticsController.volumeSpike);
 
 router.get('/returns/top', analyticsController.returnsTop);
 router.get('/returns/negative', analyticsController.returnsNegative);
+router.get('/returns/cumulative', analyticsController.returnsCumulative);
+
+router.get('/volatility/high', analyticsController.volatilityHigh);
 
 module.exports = router;
