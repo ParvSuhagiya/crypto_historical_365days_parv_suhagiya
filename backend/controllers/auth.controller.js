@@ -60,3 +60,39 @@ exports.jwtProfile = asyncHandler(async (req, res) => {
   const data = await authService.getProfile(req.user.id);
   ok(res, 'JWT profile', data, {});
 });
+
+
+exports.jwtDashboard = asyncHandler(async (req, res) => {
+  const data = await statsService.adminStatsDashboard();
+  ok(res, 'JWT dashboard snapshot', { user: req.user, stats: data }, {});
+});
+
+exports.generateToken = asyncHandler(async (req, res) => {
+  const data = await authService.generateTokenForPayload(req.body);
+  ok(res, 'Token generated', data, {});
+});
+
+exports.verifyToken = asyncHandler(async (req, res) => {
+  const token = req.body.token || (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const data = await authService.verifyTokenString(token);
+  ok(res, 'Token valid', data, {});
+});
+
+exports.jwtAdmin = asyncHandler(async (req, res) => {
+  ok(res, 'Admin JWT route', { user: req.user }, {});
+});
+
+exports.privateStats = asyncHandler(async (req, res) => {
+  const data = await statsService.marketSummary();
+  ok(res, 'Private stats', data, {});
+});
+
+exports.refreshToken = asyncHandler(async (req, res) => {
+  const data = await authService.refreshToken(req.user);
+  ok(res, 'Token refreshed', data, {});
+});
+
+exports.revokeToken = asyncHandler(async (req, res) => {
+  const data = await authService.revokeToken();
+  ok(res, 'Token revoked', data, {});
+});
