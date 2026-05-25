@@ -30,3 +30,33 @@ exports.updateProfile = asyncHandler(async (req, res) => {
   const data = await authService.updateProfile(req.user.id, req.body);
   ok(res, 'Profile updated', data, {});
 });
+
+exports.deleteProfile = asyncHandler(async (req, res) => {
+  const data = await authService.deleteProfile(req.user.id);
+  ok(res, 'Profile deleted', data, {});
+});
+
+exports.forgotPassword = asyncHandler(async (req, res) => {
+  const data = await authService.forgotPassword(req.body.email);
+  ok(res, 'Request processed', data, {});
+});
+
+exports.resetPassword = asyncHandler(async (req, res) => {
+  const data = await authService.resetPassword(req.body);
+  ok(res, 'Password reset', data, {});
+});
+
+exports.changePassword = asyncHandler(async (req, res) => {
+  const data = await authService.changePassword(req.user.id, req.body);
+  ok(res, 'Password changed', data, {});
+});
+
+exports.verifyEmail = asyncHandler(async (req, res) => {
+  const data = await authService.verifyEmail(req.body);
+  ok(res, 'Verification processed', data, {});
+});
+
+exports.jwtProfile = asyncHandler(async (req, res) => {
+  const data = await authService.getProfile(req.user.id);
+  ok(res, 'JWT profile', data, {});
+});
