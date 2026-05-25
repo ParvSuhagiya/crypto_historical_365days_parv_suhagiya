@@ -10,4 +10,12 @@ router.get('/price/trend', analyticsController.priceTrend);
 router.get('/price/growth', analyticsController.priceGrowth);
 router.get('/price/drop', analyticsController.priceDrop);
 
+router.get('/volume/highest', analyticsController.volumeHighest);
+router.get('/volume/lowest', analyticsController.volumeLowest);
+router.get('/volume/average', analyticsController.volumeAverage);
+router.get('/volume/spike', analyticsController.volumeSpike);
+
+router.get('/returns/top', analyticsController.returnsTop);
+router.get('/returns/negative', analyticsController.returnsNegative);
+
 module.exports = router;

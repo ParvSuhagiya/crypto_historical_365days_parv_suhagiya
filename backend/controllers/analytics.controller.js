@@ -34,3 +34,34 @@ exports.priceGrowth = asyncHandler(async (req, res) => {
   const result = await analyticsService.priceGrowth();
   ok(res, 'Price growth sample', result.items, result.pagination);
 });
+
+
+exports.priceDrop = asyncHandler(async (req, res) => {
+  const result = await analyticsService.priceDrop();
+  ok(res, 'Price drop sample', result.items, result.pagination);
+});
+
+exports.volumeHighest = asyncHandler(async (req, res) => {
+  const result = await analyticsService.highestVolume();
+  ok(res, 'Highest volume', result.items, result.pagination);
+});
+
+exports.volumeLowest = asyncHandler(async (req, res) => {
+  const result = await analyticsService.lowestVolume();
+  ok(res, 'Lowest volume', result.items, result.pagination);
+});
+
+exports.volumeAverage = asyncHandler(async (req, res) => {
+  const data = await analyticsService.averageVolume();
+  ok(res, 'Average volume', data, {});
+});
+
+exports.volumeSpike = asyncHandler(async (req, res) => {
+  const result = await analyticsService.volumeSpike();
+  ok(res, 'Volume spikes', { baselineAvgVolume: result.baselineAvgVolume, items: result.items }, result.pagination);
+});
+
+exports.returnsTop = asyncHandler(async (req, res) => {
+  const result = await analyticsService.topReturns();
+  ok(res, 'Top returns', result.items, result.pagination);
+});
