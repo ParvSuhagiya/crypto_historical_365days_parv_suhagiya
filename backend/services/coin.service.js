@@ -428,3 +428,109 @@ const getByMonth = async (month, page, limit) => {
     throw err;
   }
 };
+const getByDate = async (date, page, limit) => {
+  try {
+    if (!DATE_REGEX.test(date)) {
+      const e = new Error('date must be YYYY-MM-DD');
+      e.statusCode = 400;
+      throw e;
+    }
+    const filter = { ...notDeleted, date };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ rank: 1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getLatest = async (limit) => {
+  try {
+    const l = Math.min(100, Math.max(1, Number(limit) || 20));
+    const items = await Coin.find(notDeleted).sort({ timestamp: -1 }).limit(l).lean();
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getHistoryByCoinId = async (coinId, page, limit) => {
+  try {
+    const filter = { ...notDeleted, coinId: String(coinId) };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: 1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    if (total === 0) {
+      const e = new Error('No history found for this coinId');
+      e.statusCode = 404;
+      throw e;
+    }
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getHistoryByCoinIdAndMonth = async (coinId, month, page, limit) => {
+  try {
+    if (!MONTH_REGEX.test(month)) {
+      const e = new Error('month must be YYYY-MM');
+      e.statusCode = 400;
+      throw e;
+    }
+    const filter = { ...notDeleted, coinId: String(coinId), month };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 31));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: 1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    if (total === 0) {
+      const e = new Error('No records for this coin and month');
+      e.statusCode = 404;
+      throw e;
+    }
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const topByField = async (field, order, limit) => {
+  try {
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const items = await Coin.find(notDeleted).sort({ [field]: order }).limit(l).lean();
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getOldest = async (limit) => {
+  try {
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const items = await Coin.find(notDeleted).sort({ timestamp: 1 }).limit(l).lean();
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
