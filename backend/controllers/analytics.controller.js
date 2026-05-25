@@ -35,7 +35,6 @@ exports.priceGrowth = asyncHandler(async (req, res) => {
   ok(res, 'Price growth sample', result.items, result.pagination);
 });
 
-
 exports.priceDrop = asyncHandler(async (req, res) => {
   const result = await analyticsService.priceDrop();
   ok(res, 'Price drop sample', result.items, result.pagination);
@@ -64,4 +63,19 @@ exports.volumeSpike = asyncHandler(async (req, res) => {
 exports.returnsTop = asyncHandler(async (req, res) => {
   const result = await analyticsService.topReturns();
   ok(res, 'Top returns', result.items, result.pagination);
+});
+
+exports.returnsNegative = asyncHandler(async (req, res) => {
+  const result = await analyticsService.negativeReturns();
+  ok(res, 'Negative returns', result.items, result.pagination);
+});
+
+exports.returnsCumulative = asyncHandler(async (req, res) => {
+  const result = await analyticsService.cumulativeReturns();
+  ok(res, 'Cumulative returns leaders', result.items, result.pagination);
+});
+
+exports.volatilityHigh = asyncHandler(async (req, res) => {
+  const result = await analyticsService.highVolatility();
+  ok(res, 'High volatility', result.items, result.pagination);
 });
