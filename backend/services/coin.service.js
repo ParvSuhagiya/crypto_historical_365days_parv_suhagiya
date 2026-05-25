@@ -534,3 +534,156 @@ const getOldest = async (limit) => {
     throw err;
   }
 };
+
+const getNewest = async (limit) => {
+  try {
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const items = await Coin.find(notDeleted).sort({ timestamp: -1 }).limit(l).lean();
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getTrending = async (limit) => {
+  try {
+    const l = Math.min(50, Math.max(1, Number(limit) || 15));
+    const items = await Coin.aggregate([
+      { $match: notDeleted },
+      { $sort: { volume: -1, timestamp: -1 } },
+      { $group: { _id: '$symbol', doc: { $first: '$$ROOT' } } },
+      { $replaceRoot: { newRoot: '$doc' } },
+      { $limit: l },
+    ]);
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getRecentUpdates = async (limit) => {
+  try {
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const items = await Coin.find(notDeleted).sort({ updatedAt: -1 }).limit(l).lean();
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getRandomCoin = async () => {
+  try {
+    const [row] = await Coin.aggregate([{ $match: notDeleted }, { $sample: { size: 1 } }]);
+    if (!row) {
+      const e = new Error('No coin records available');
+      e.statusCode = 404;
+      throw e;
+    }
+    return row;
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const avgOfField = async (field) => {
+  const [r] = await Coin.aggregate([
+    { $match: notDeleted },
+    { $group: { _id: null, avg: { $avg: `$${field}` } } },
+  ]);
+  return r?.avg ?? 0;
+};
+
+const filterAboveAvg = async (field, page, limit) => {
+  try {
+    const avg = await avgOfField(field);
+    const filter = { ...notDeleted, [field]: { $gt: avg } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, average: avg, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterBelowAvg = async (field, page, limit) => {
+  try {
+    const avg = await avgOfField(field);
+    const filter = { ...notDeleted, [field]: { $lt: avg } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, average: avg, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterHighMarketCap = async (page, limit) => {
+  try {
+    const avg = await avgOfField('marketCap');
+    const filter = { ...notDeleted, marketCap: { $gte: avg } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ marketCap: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterLowMarketCap = async (page, limit) => {
+  try {
+    const avg = await avgOfField('marketCap');
+    const filter = { ...notDeleted, marketCap: { $lt: avg } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ marketCap: 1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterHighVolatility = async (page, limit) => {
+  try {
+    const avg = await avgOfField('volatility');
+    const filter = { ...notDeleted, volatility: { $gt: avg } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ volatility: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
