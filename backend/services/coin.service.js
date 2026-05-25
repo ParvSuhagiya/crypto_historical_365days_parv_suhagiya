@@ -137,3 +137,166 @@ const createCoin = async (body) => {
     throw err;
   }
 };
+
+
+const replaceCoin = async (id, body) => {
+  try {
+    if (!isValidObjectId(id)) {
+      const e = new Error('Invalid id format');
+      e.statusCode = 400;
+      throw e;
+    }
+    const existing = await Coin.findOne({ _id: id, ...notDeleted });
+    if (!existing) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    const errs = validateCreateCoin(body);
+    if (errs.length) {
+      const e = new Error(errs.join('; '));
+      e.statusCode = 400;
+      throw e;
+    }
+    Object.assign(existing, {
+      coinId: ensureCoinId(body),
+      name: body.name,
+      symbol: body.symbol,
+      rank: Number(body.rank),
+      date: String(body.date),
+      month: String(body.month),
+      timestamp: body.timestamp ? new Date(body.timestamp) : new Date(`${body.date}T00:00:00.000Z`),
+      price: Number(body.price),
+      marketCap: Number(body.marketCap),
+      volume: Number(body.volume),
+      dailyReturn: Number(body.dailyReturn ?? 0),
+      cumulativeReturn: Number(body.cumulativeReturn ?? 0),
+      volatility: Number(body.volatility ?? 0),
+      high: body.high,
+      low: body.low,
+    });
+    await existing.save();
+    return existing.toObject();
+  } catch (err) {
+    const dup = duplicateKeyMessage(err);
+    if (dup) {
+      const e = new Error(dup);
+      e.statusCode = 409;
+      throw e;
+    }
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const patchCoin = async (id, body) => {
+  try {
+    if (!isValidObjectId(id)) {
+      const e = new Error('Invalid id format');
+      e.statusCode = 400;
+      throw e;
+    }
+    const doc = await Coin.findOneAndUpdate(
+      { _id: id, ...notDeleted },
+      { $set: body },
+      { new: true, runValidators: true }
+    ).lean();
+    if (!doc) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    return doc;
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const softDeleteCoin = async (id) => {
+  try {
+    if (!isValidObjectId(id)) {
+      const e = new Error('Invalid id format');
+      e.statusCode = 400;
+      throw e;
+    }
+    const doc = await Coin.findOneAndUpdate(
+      { _id: id, ...notDeleted },
+      { $set: { isDeleted: true } },
+      { new: true }
+    ).lean();
+    if (!doc) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    return doc;
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const coinExists = async (id) => {
+  try {
+    if (!isValidObjectId(id)) return { exists: false };
+    const count = await Coin.countDocuments({ _id: id, ...notDeleted });
+    return { exists: count > 0 };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const bulkCreateCoins = async (items) => {
+  try {
+    if (!Array.isArray(items) || items.length === 0) {
+      const e = new Error('Request body must be a non-empty array of coins');
+      e.statusCode = 400;
+      throw e;
+    }
+    const prepared = [];
+    for (const body of items) {
+      const errs = validateCreateCoin(body);
+      if (errs.length) {
+        const e = new Error(`Validation failed: ${errs.join('; ')}`);
+        e.statusCode = 400;
+        throw e;
+      }
+      prepared.push({
+        coinId: ensureCoinId(body),
+        name: body.name,
+        symbol: body.symbol,
+        rank: Number(body.rank),
+        date: String(body.date),
+        month: String(body.month),
+        timestamp: body.timestamp ? new Date(body.timestamp) : new Date(`${body.date}T00:00:00.000Z`),
+        price: Number(body.price),
+        marketCap: Number(body.marketCap),
+        volume: Number(body.volume),
+        dailyReturn: Number(body.dailyReturn ?? 0),
+        cumulativeReturn: Number(body.cumulativeReturn ?? 0),
+        volatility: Number(body.volatility ?? 0),
+        high: body.high,
+        low: body.low,
+        isDeleted: false,
+      });
+    }
+    const inserted = await Coin.insertMany(prepared, { ordered: false }).catch((err) => {
+      if (err.code === 11000) {
+        const e = new Error('One or more records violate unique constraints');
+        e.statusCode = 409;
+        throw e;
+      }
+      throw err;
+    });
+    return { count: inserted.length, inserted };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
