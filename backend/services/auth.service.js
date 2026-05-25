@@ -135,7 +135,6 @@ const updateProfile = async (userId, body) => {
   }
 };
 
-
 const deleteProfile = async (userId) => {
   try {
     const r = await User.findByIdAndDelete(userId);
@@ -328,4 +327,48 @@ const refreshToken = async (user) => {
     err.statusCode = 500;
     throw err;
   }
+};
+
+const revokeToken = async () => {
+  try {
+    return { revoked: true, note: 'Stateless JWT: discard token on client' };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const listUsers = async (page, limit) => {
+  try {
+    const { buildPagination } = require('../utils/pagination');
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 20));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      User.find({}).select('-password').sort({ createdAt: -1 }).skip(skip).limit(l).lean(),
+      User.countDocuments({}),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  logoutUser,
+  getProfile,
+  updateProfile,
+  deleteProfile,
+  forgotPassword,
+  resetPassword,
+  changePassword,
+  verifyEmail,
+  generateTokenForPayload,
+  verifyTokenString,
+  refreshToken,
+  revokeToken,
+  listUsers,
 };
