@@ -1,0 +1,136 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const User = require('../models/User.model');
+
+const signToken = (user) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    const e = new Error('JWT_SECRET not configured');
+    e.statusCode = 500;
+    throw e;
+  }
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  return jwt.sign(
+    { id: user._id.toString(), email: user.email, role: user.role, name: user.name },
+    secret,
+    { expiresIn }
+  );
+};
+
+const validateRegister = (body) => {
+  const errors = [];
+  if (!body.name || String(body.name).trim() === '') errors.push('name is required');
+  if (!body.email || String(body.email).trim() === '') errors.push('email is required');
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(body.email))) errors.push('email format invalid');
+  if (!body.password || String(body.password).length < 6) errors.push('password is required (min 6 characters)');
+  return errors;
+};
+
+const registerUser = async (body) => {
+  try {
+    const errs = validateRegister(body);
+    if (errs.length) {
+      const e = new Error(errs.join('; '));
+      e.statusCode = 400;
+      throw e;
+    }
+    const existing = await User.findOne({ email: String(body.email).toLowerCase() });
+    if (existing) {
+      const e = new Error('Email already registered');
+      e.statusCode = 409;
+      throw e;
+    }
+    const hashed = await bcrypt.hash(String(body.password), 10);
+    const user = await User.create({
+      name: String(body.name).trim(),
+      email: String(body.email).toLowerCase().trim(),
+      password: hashed,
+      role: 'user',
+      isVerified: false,
+    });
+    const token = signToken(user);
+    return {
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified },
+      token,
+    };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const loginUser = async (body) => {
+  try {
+    if (!body.email || !body.password) {
+      const e = new Error('email and password are required');
+      e.statusCode = 400;
+      throw e;
+    }
+    const user = await User.findOne({ email: String(body.email).toLowerCase() }).select('+password');
+    if (!user) {
+      const e = new Error('Invalid credentials');
+      e.statusCode = 401;
+      throw e;
+    }
+    const ok = await bcrypt.compare(String(body.password), user.password);
+    if (!ok) {
+      const e = new Error('Invalid credentials');
+      e.statusCode = 401;
+      throw e;
+    }
+    const token = signToken(user);
+    return {
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified },
+      token,
+    };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const logoutUser = async () => {
+  try {
+    return { message: 'Logged out (client should discard token)' };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getProfile = async (userId) => {
+  try {
+    const user = await User.findById(userId).lean();
+    if (!user) {
+      const e = new Error('User not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    return { id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const updateProfile = async (userId, body) => {
+  try {
+    const updates = {};
+    if (body.name) updates.name = String(body.name).trim();
+    const user = await User.findByIdAndUpdate(userId, { $set: updates }, { new: true }).lean();
+    if (!user) {
+      const e = new Error('User not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    return { id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
