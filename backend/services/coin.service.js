@@ -921,3 +921,281 @@ const marketCapDetails = async (coinId) => {
     throw err;
   }
 };
+
+
+const volumeDetails = async (coinId) => {
+  try {
+    const rows = await Coin.find({ ...notDeleted, coinId: String(coinId) }).sort({ timestamp: 1 }).lean();
+    if (!rows.length) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    const vols = rows.map((r) => r.volume);
+    return {
+      coinId,
+      latestVolume: rows[rows.length - 1].volume,
+      avgVolume: vols.reduce((a, b) => a + b, 0) / vols.length,
+      maxVolume: Math.max(...vols),
+    };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const returnsAnalytics = async (coinId) => {
+  try {
+    const rows = await Coin.find({ ...notDeleted, coinId: String(coinId) }).sort({ timestamp: 1 }).lean();
+    if (!rows.length) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    const dr = rows.map((r) => r.dailyReturn);
+    const cr = rows.map((r) => r.cumulativeReturn);
+    return {
+      coinId,
+      avgDailyReturn: dr.reduce((a, b) => a + b, 0) / dr.length,
+      latestCumulativeReturn: rows[rows.length - 1].cumulativeReturn,
+      maxDailyReturn: Math.max(...dr),
+      minDailyReturn: Math.min(...dr),
+      cumulativeRange: { min: Math.min(...cr), max: Math.max(...cr) },
+    };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const currentPrice = async (coinId) => {
+  try {
+    const doc = await Coin.findOne({ ...notDeleted, coinId: String(coinId) }).sort({ timestamp: -1 }).lean();
+    if (!doc) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    return { coinId, price: doc.price, date: doc.date, symbol: doc.symbol, name: doc.name };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const compareCoins = async (coinIds) => {
+  try {
+    const ids = coinIds.map(String);
+    const out = [];
+    for (const id of ids) {
+      const doc = await Coin.findOne({ ...notDeleted, coinId: id }).sort({ timestamp: -1 }).lean();
+      if (doc) out.push(doc);
+    }
+    if (out.length !== ids.length) {
+      const e = new Error('One or more coinIds not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    return { comparison: out };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getRecommendations = async (limit) => {
+  try {
+    const l = Math.min(30, Math.max(1, Number(limit) || 10));
+    const items = await Coin.aggregate([
+      { $match: notDeleted },
+      { $sort: { timestamp: -1 } },
+      { $group: { _id: '$coinId', doc: { $first: '$$ROOT' } } },
+      { $replaceRoot: { newRoot: '$doc' } },
+      { $match: { cumulativeReturn: { $gt: 0 }, volatility: { $lt: 50 } } },
+      { $sort: { cumulativeReturn: -1 } },
+      { $limit: l },
+    ]);
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getPredictions = async () => {
+  try {
+    const [r] = await Coin.aggregate([
+      { $match: notDeleted },
+      { $sort: { timestamp: -1 } },
+      { $limit: 500 },
+      { $group: { _id: null, avgDaily: { $avg: '$dailyReturn' } } },
+    ]);
+    const avg = r?.avgDaily ?? 0;
+    let sentiment = 'neutral';
+    if (avg > 0.5) sentiment = 'bullish';
+    else if (avg < -0.5) sentiment = 'bearish';
+    return {
+      note: 'Heuristic trend based on recent average daily return (not financial advice)',
+      recentAvgDailyReturn: avg,
+      sentiment,
+    };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const simulatePortfolio = async (allocations) => {
+  try {
+    if (!Array.isArray(allocations) || allocations.length === 0) {
+      const e = new Error('allocations array required: [{ coinId, amountUsd }]');
+      e.statusCode = 400;
+      throw e;
+    }
+    let total = 0;
+    const positions = [];
+    for (const a of allocations) {
+      const amt = Number(a.amountUsd);
+      if (!a.coinId || !Number.isFinite(amt) || amt <= 0) {
+        const e = new Error('Each allocation needs coinId and positive amountUsd');
+        e.statusCode = 400;
+        throw e;
+      }
+      const doc = await Coin.findOne({ ...notDeleted, coinId: String(a.coinId) }).sort({ timestamp: -1 }).lean();
+      if (!doc) {
+        const e = new Error(`Unknown coinId: ${a.coinId}`);
+        e.statusCode = 404;
+        throw e;
+      }
+      const units = doc.price > 0 ? amt / doc.price : 0;
+      positions.push({ coinId: doc.coinId, amountUsd: amt, estUnits: units, priceUsed: doc.price });
+      total += amt;
+    }
+    return { totalInvestedUsd: total, positions };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getHeatmap = async () => {
+  try {
+    const items = await Coin.aggregate([
+      { $match: notDeleted },
+      { $group: { _id: { symbol: '$symbol', date: '$date' }, dailyReturn: { $avg: '$dailyReturn' } } },
+      { $project: { _id: 0, symbol: '$_id.symbol', date: '$_id.date', dailyReturn: 1 } },
+      { $sort: { date: 1 } },
+      { $limit: 2000 },
+    ]);
+    return { cells: items };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const getMarketStatus = async () => {
+  try {
+    const [agg] = await Coin.aggregate([
+      { $match: notDeleted },
+      { $sort: { timestamp: -1 } },
+      { $limit: 300 },
+      { $group: { _id: null, avgReturn: { $avg: '$dailyReturn' }, avgVol: { $avg: '$volatility' } } },
+    ]);
+    return {
+      avgDailyReturnSample: agg?.avgReturn ?? 0,
+      avgVolatilitySample: agg?.avgVol ?? 0,
+      status:
+        (agg?.avgReturn ?? 0) > 0.2 ? 'risk-on' : (agg?.avgReturn ?? 0) < -0.2 ? 'risk-off' : 'mixed',
+    };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const topMonthlyPerformers = async (limit) => {
+  try {
+    const l = Math.min(50, Math.max(1, Number(limit) || 10));
+    const items = await Coin.aggregate([
+      { $match: notDeleted },
+      { $group: { _id: { month: '$month', coinId: '$coinId' }, avgReturn: { $avg: '$dailyReturn' }, name: { $first: '$name' } } },
+      { $sort: { avgReturn: -1 } },
+      { $limit: l },
+    ]);
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const topYearlyPerformers = async (limit) => {
+  try {
+    const l = Math.min(50, Math.max(1, Number(limit) || 10));
+    const items = await Coin.aggregate([
+      { $match: notDeleted },
+      {
+        $addFields: {
+          year: { $substr: ['$date', 0, 4] },
+        },
+      },
+      { $group: { _id: { year: '$year', coinId: '$coinId' }, avgReturn: { $avg: '$dailyReturn' }, name: { $first: '$name' } } },
+      { $sort: { avgReturn: -1 } },
+      { $limit: l },
+    ]);
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const highVolatilityAlerts = async (threshold, limit) => {
+  try {
+    const t = Number(threshold) || 15;
+    const l = Math.min(100, Math.max(1, Number(limit) || 20));
+    const items = await Coin.find({ ...notDeleted, volatility: { $gte: t } })
+      .sort({ volatility: -1 })
+      .limit(l)
+      .lean();
+    return { threshold: t, items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const marketDropAlerts = async (limit) => {
+  try {
+    const l = Math.min(100, Math.max(1, Number(limit) || 20));
+    const items = await Coin.find({ ...notDeleted, dailyReturn: { $lte: -5 } })
+      .sort({ dailyReturn: 1 })
+      .limit(l)
+      .lean();
+    return { items, pagination: buildPagination(items.length, 1, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const submitReport = async (body) => {
+  try {
+    if (!body || !body.message) {
+      const e = new Error('message is required');
+      e.statusCode = 400;
+      throw e;
+    }
+    return { received: true, id: new mongoose.Types.ObjectId().toString(), summary: String(body.message).slice(0, 200) };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
