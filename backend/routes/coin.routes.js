@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const coinController = require('../controllers/coin.controller');
+const authMiddleware = require('../middlewares/auth.middleware');
+const adminMiddleware = require('../middlewares');
 
 // System & export (before :id)
 router.get('/system/health', coinController.systemHealth);
