@@ -11,6 +11,10 @@ const authRoutes = require('./routes/auth.routes');
 const searchRoutes = require('./routes/search.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
 const statsRoutes = require('./routes/stats.routes');
+const adminRoutes = require('./routes/admin.routes');
+const jwtRoutes = require('./routes/jwt.routes');
+const middlewareRoutes = require('./routes/middleware.routes');
+const protectedRoutes = require('./routes/protected.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +47,10 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/stats', statsRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/jwt', jwtRoutes);
+app.use('/api/v1/middleware', middlewareRoutes);
+app.use('/api/v1/protected', protectedRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

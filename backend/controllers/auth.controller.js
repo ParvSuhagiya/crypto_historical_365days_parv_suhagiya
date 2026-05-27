@@ -61,7 +61,6 @@ exports.jwtProfile = asyncHandler(async (req, res) => {
   ok(res, 'JWT profile', data, {});
 });
 
-
 exports.jwtDashboard = asyncHandler(async (req, res) => {
   const data = await statsService.adminStatsDashboard();
   ok(res, 'JWT dashboard snapshot', { user: req.user, stats: data }, {});

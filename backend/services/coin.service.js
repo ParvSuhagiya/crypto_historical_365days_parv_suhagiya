@@ -138,7 +138,6 @@ const createCoin = async (body) => {
   }
 };
 
-
 const replaceCoin = async (id, body) => {
   try {
     if (!isValidObjectId(id)) {
@@ -301,7 +300,6 @@ const bulkCreateCoins = async (items) => {
   }
 };
 
-
 const bulkUpdateCoins = async (updates) => {
   try {
     if (!Array.isArray(updates) || updates.length === 0) {
@@ -428,6 +426,7 @@ const getByMonth = async (month, page, limit) => {
     throw err;
   }
 };
+
 const getByDate = async (date, page, limit) => {
   try {
     if (!DATE_REGEX.test(date)) {
@@ -922,7 +921,6 @@ const marketCapDetails = async (coinId) => {
   }
 };
 
-
 const volumeDetails = async (coinId) => {
   try {
     const rows = await Coin.find({ ...notDeleted, coinId: String(coinId) }).sort({ timestamp: 1 }).lean();
@@ -1199,7 +1197,6 @@ const submitReport = async (body) => {
     throw err;
   }
 };
-
 
 const clearCache = async () => {
   try {
