@@ -78,5 +78,16 @@ router.get('/date/:date', coinController.getByDate);
 
 // Per-coin analytics (coinId param)
 router.get('/performance/:coinId', coinController.performance);
+router.get('/volatility/:coinId', coinController.volatility);
+router.get('/market-cap/:coinId', coinController.marketCapCoin);
+router.get('/volume/:coinId', coinController.volumeCoin);
+router.get('/returns/:coinId', coinController.returnsCoin);
+router.get('/price/:coinId', coinController.priceCoin);
+
+router.get('/compare/:coin1/:coin2/:coin3', coinController.compareThree);
+router.get('/compare/:coin1/:coin2', coinController.compareTwo);
+
+router.get('/history/:coinId/:month', coinController.getHistoryMonth);
+router.get('/history/:coinId', coinController.getHistory);
 
 module.exports = router;
