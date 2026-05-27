@@ -34,3 +34,53 @@ exports.deleteCoin = asyncHandler(async (req, res) => {
   const data = await coinService.softDeleteCoin(req.params.id);
   ok(res, 'Coin soft-deleted successfully', data, {});
 });
+
+exports.checkExists = asyncHandler(async (req, res) => {
+  const data = await coinService.coinExists(req.params.id);
+  ok(res, 'Existence checked', data, {});
+});
+
+exports.bulkCreate = asyncHandler(async (req, res) => {
+  const data = await coinService.bulkCreateCoins(req.body);
+  ok(res, 'Bulk create completed', data, {});
+});
+
+exports.bulkUpdate = asyncHandler(async (req, res) => {
+  const data = await coinService.bulkUpdateCoins(req.body);
+  ok(res, 'Bulk update completed', data, {});
+});
+
+exports.bulkDelete = asyncHandler(async (req, res) => {
+  const data = await coinService.bulkDeleteCoins(req.body);
+  ok(res, 'Bulk soft-delete completed', data, {});
+});
+
+exports.getByName = asyncHandler(async (req, res) => {
+  const result = await coinService.getByName(req.params.coinName, req.query.page, req.query.limit);
+  ok(res, 'Coins by name', result.items, result.pagination);
+});
+
+exports.getBySymbol = asyncHandler(async (req, res) => {
+  const result = await coinService.getBySymbol(req.params.symbol, req.query.page, req.query.limit);
+  ok(res, 'Coins by symbol', result.items, result.pagination);
+});
+
+exports.getByRank = asyncHandler(async (req, res) => {
+  const result = await coinService.getByRank(req.params.rank, req.query.page, req.query.limit);
+  ok(res, 'Coins by rank', result.items, result.pagination);
+});
+
+exports.getByMonth = asyncHandler(async (req, res) => {
+  const result = await coinService.getByMonth(req.params.month, req.query.page, req.query.limit);
+  ok(res, 'Coins for month', result.items, result.pagination);
+});
+
+exports.getByDate = asyncHandler(async (req, res) => {
+  const result = await coinService.getByDate(req.params.date, req.query.page, req.query.limit);
+  ok(res, 'Coins for date', result.items, result.pagination);
+});
+
+exports.getLatest = asyncHandler(async (req, res) => {
+  const result = await coinService.getLatest(req.query.limit);
+  ok(res, 'Latest coins', result.items, result.pagination);
+});
