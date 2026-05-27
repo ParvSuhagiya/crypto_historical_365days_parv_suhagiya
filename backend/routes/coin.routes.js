@@ -59,5 +59,15 @@ router.get('/recent', coinController.getRecent);
 router.get('/random', coinController.getRandom);
 router.get('/oldest', coinController.getOldest);
 router.get('/newest', coinController.getNewest);
+router.get('/top-market-cap', coinController.topMarketCap);
+router.get('/top-volume', coinController.topVolume);
+router.get('/top-gainers', coinController.topGainers);
+router.get('/top-losers', coinController.topLosers);
+
+router.get('/exists/:id', coinController.checkExists);
+
+router.post('/bulk-create', authMiddleware, adminMiddleware, coinController.bulkCreate);
+router.patch('/bulk-update', authMiddleware, adminMiddleware, coinController.bulkUpdate);
+router.delete('/bulk-delete', authMiddleware, adminMiddleware, coinController.bulkDelete);
 
 module.exports = router;

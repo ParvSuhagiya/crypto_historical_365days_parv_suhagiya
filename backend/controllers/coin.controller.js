@@ -294,3 +294,59 @@ exports.predictions = asyncHandler(async (req, res) => {
   const data = await coinService.getPredictions();
   ok(res, 'Predictions', data, {});
 });
+
+
+exports.portfolioSimulate = asyncHandler(async (req, res) => {
+  const data = await coinService.simulatePortfolio(req.body.allocations || req.body);
+  ok(res, 'Portfolio simulation', data, {});
+});
+
+exports.heatmap = asyncHandler(async (req, res) => {
+  const data = await coinService.getHeatmap();
+  ok(res, 'Heatmap data', data, {});
+});
+
+exports.marketStatus = asyncHandler(async (req, res) => {
+  const data = await coinService.getMarketStatus();
+  ok(res, 'Market status', data, {});
+});
+
+exports.topMonthly = asyncHandler(async (req, res) => {
+  const result = await coinService.topMonthlyPerformers(req.query.limit);
+  ok(res, 'Top monthly performers', result.items, result.pagination);
+});
+
+exports.topYearly = asyncHandler(async (req, res) => {
+  const result = await coinService.topYearlyPerformers(req.query.limit);
+  ok(res, 'Top yearly performers', result.items, result.pagination);
+});
+
+exports.alertsHighVol = asyncHandler(async (req, res) => {
+  const result = await coinService.highVolatilityAlerts(req.query.threshold, req.query.limit);
+  ok(
+    res,
+    'High volatility alerts',
+    { threshold: result.threshold, items: result.items },
+    result.pagination
+  );
+});
+
+exports.alertsMarketDrop = asyncHandler(async (req, res) => {
+  const result = await coinService.marketDropAlerts(req.query.limit);
+  ok(res, 'Market drop alerts', result.items, result.pagination);
+});
+
+exports.submitReport = asyncHandler(async (req, res) => {
+  const data = await coinService.submitReport(req.body);
+  ok(res, 'Report submitted', data, {}, 201);
+});
+
+exports.clearCache = asyncHandler(async (req, res) => {
+  const data = await coinService.clearCache();
+  ok(res, 'Cache clear', data, {});
+});
+
+exports.systemHealth = asyncHandler(async (req, res) => {
+  const data = await coinService.systemHealth();
+  ok(res, 'Health', data, {});
+});
