@@ -350,3 +350,31 @@ exports.systemHealth = asyncHandler(async (req, res) => {
   const data = await coinService.systemHealth();
   ok(res, 'Health', data, {});
 });
+
+
+exports.systemVersion = asyncHandler(async (req, res) => {
+  const data = await coinService.systemVersion();
+  ok(res, 'Version', data, {});
+});
+
+exports.systemConfig = asyncHandler(async (req, res) => {
+  const data = await coinService.publicConfig();
+  ok(res, 'Public config', data, {});
+});
+
+exports.exportCsv = asyncHandler(async (req, res) => {
+  const { filename, csv, count } = await coinService.exportCsv(req.query);
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.status(200).send(csv);
+});
+
+exports.exportJson = asyncHandler(async (req, res) => {
+  const data = await coinService.exportJson(req.query);
+  ok(res, 'JSON export', data, {});
+});
+
+exports.adminListCoins = asyncHandler(async (req, res) => {
+  const result = await coinService.getAllCoinsForAdmin(req.query.page, req.query.limit);
+  ok(res, 'All coins (admin)', result.items, result.pagination);
+});
