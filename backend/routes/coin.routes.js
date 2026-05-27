@@ -52,4 +52,12 @@ router.get('/sort/volume-desc', coinController.sortVolumeDesc);
 router.get('/sort/rank-asc', coinController.sortRankAsc);
 router.get('/sort/return-desc', coinController.sortReturnDesc);
 
+// Lists & lookups
+router.get('/latest', coinController.getLatest);
+router.get('/trending', coinController.getTrending);
+router.get('/recent', coinController.getRecent);
+router.get('/random', coinController.getRandom);
+router.get('/oldest', coinController.getOldest);
+router.get('/newest', coinController.getNewest);
+
 module.exports = router;

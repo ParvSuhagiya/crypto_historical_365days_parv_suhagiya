@@ -244,3 +244,53 @@ exports.filterHighVolatility = asyncHandler(async (req, res) => {
   const result = await coinService.filterHighVolatility(req.query.page, req.query.limit);
   ok(res, 'High volatility', result.items, result.pagination);
 });
+
+exports.filterLowVolatility = asyncHandler(async (req, res) => {
+  const result = await coinService.filterLowVolatility(req.query.page, req.query.limit);
+  ok(res, 'Low volatility', result.items, result.pagination);
+});
+
+exports.filterHighReturn = asyncHandler(async (req, res) => {
+  const result = await coinService.filterHighReturn(req.query.page, req.query.limit);
+  ok(res, 'High return', result.items, result.pagination);
+});
+
+exports.filterNegativeReturn = asyncHandler(async (req, res) => {
+  const result = await coinService.filterNegativeReturn(req.query.page, req.query.limit);
+  ok(res, 'Negative return', result.items, result.pagination);
+});
+
+exports.filterBullish = asyncHandler(async (req, res) => {
+  const result = await coinService.filterBullish(req.query.page, req.query.limit);
+  ok(res, 'Bullish', result.items, result.pagination);
+});
+
+exports.filterBearish = asyncHandler(async (req, res) => {
+  const result = await coinService.filterBearish(req.query.page, req.query.limit);
+  ok(res, 'Bearish', result.items, result.pagination);
+});
+
+exports.filterProfitable = asyncHandler(async (req, res) => {
+  const result = await coinService.filterProfitable(req.query.page, req.query.limit);
+  ok(res, 'Profitable', result.items, result.pagination);
+});
+
+exports.filterLossMaking = asyncHandler(async (req, res) => {
+  const result = await coinService.filterLossMaking(req.query.page, req.query.limit);
+  ok(res, 'Loss making', result.items, result.pagination);
+});
+
+exports.filterMissingValues = asyncHandler(async (req, res) => {
+  const result = await coinService.filterMissingValues(req.query.page, req.query.limit);
+  ok(res, 'Missing high/low', result.items, result.pagination);
+});
+
+exports.recommendations = asyncHandler(async (req, res) => {
+  const result = await coinService.getRecommendations(req.query.limit);
+  ok(res, 'Recommendations', result.items, result.pagination);
+});
+
+exports.predictions = asyncHandler(async (req, res) => {
+  const data = await coinService.getPredictions();
+  ok(res, 'Predictions', data, {});
+});
