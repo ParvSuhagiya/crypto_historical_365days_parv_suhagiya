@@ -34,3 +34,33 @@ exports.topGainers = asyncHandler(async (req, res) => {
   const result = await statsService.topGainers(req.query.limit);
   ok(res, 'Top gainers', result.items, result.pagination);
 });
+
+exports.topLosers = asyncHandler(async (req, res) => {
+  const result = await statsService.topLosers(req.query.limit);
+  ok(res, 'Top losers', result.items, result.pagination);
+});
+
+exports.monthlyAnalysis = asyncHandler(async (req, res) => {
+  const data = await statsService.monthlyAnalysis();
+  ok(res, 'Monthly analysis', data, {});
+});
+
+exports.coinCount = asyncHandler(async (req, res) => {
+  const data = await statsService.coinCount();
+  ok(res, 'Coin counts', data, {});
+});
+
+exports.rankDistribution = asyncHandler(async (req, res) => {
+  const data = await statsService.rankDistribution();
+  ok(res, 'Rank distribution', data, {});
+});
+
+exports.priceDistribution = asyncHandler(async (req, res) => {
+  const data = await statsService.priceDistribution();
+  ok(res, 'Price distribution', data, {});
+});
+
+exports.volatilityDistribution = asyncHandler(async (req, res) => {
+  const data = await statsService.volatilityDistribution();
+  ok(res, 'Volatility distribution', data, {});
+});

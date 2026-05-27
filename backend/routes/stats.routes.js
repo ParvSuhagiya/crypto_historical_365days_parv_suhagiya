@@ -8,5 +8,11 @@ router.get('/average-volume', statsController.averageVolume);
 router.get('/highest-market-cap', statsController.highestMarketCap);
 router.get('/highest-volume', statsController.highestVolume);
 router.get('/top-gainers', statsController.topGainers);
+router.get('/top-losers', statsController.topLosers);
+router.get('/monthly-analysis', statsController.monthlyAnalysis);
+router.get('/coin-count', statsController.coinCount);
+router.get('/rank-distribution', statsController.rankDistribution);
+router.get('/price-distribution', statsController.priceDistribution);
+router.get('/volatility-distribution', statsController.volatilityDistribution);
 
 module.exports = router;
