@@ -90,4 +90,15 @@ router.get('/compare/:coin1/:coin2', coinController.compareTwo);
 router.get('/history/:coinId/:month', coinController.getHistoryMonth);
 router.get('/history/:coinId', coinController.getHistory);
 
+// CRUD base
+router.get('/', coinController.getAllCoins);
+router.head('/', coinController.getAllCoins);
+router.options('/', (req, res) => res.sendStatus(204));
+
+router.post('/', coinController.createCoin);
+router.get('/:id', coinController.getCoinById);
+router.put('/:id', coinController.replaceCoin);
+router.patch('/:id', coinController.patchCoin);
+router.delete('/:id', coinController.deleteCoin);
+
 module.exports = router;
