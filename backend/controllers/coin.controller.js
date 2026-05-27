@@ -189,3 +189,58 @@ exports.sortPriceAsc = asyncHandler(async (req, res) => {
   const result = await coinService.sortSimple({ price: 1 }, req.query.page, req.query.limit);
   ok(res, 'Sorted by price asc', result.items, result.pagination);
 });
+
+exports.sortPriceDesc = asyncHandler(async (req, res) => {
+  const result = await coinService.sortSimple({ price: -1 }, req.query.page, req.query.limit);
+  ok(res, 'Sorted by price desc', result.items, result.pagination);
+});
+
+exports.sortVolumeDesc = asyncHandler(async (req, res) => {
+  const result = await coinService.sortSimple({ volume: -1 }, req.query.page, req.query.limit);
+  ok(res, 'Sorted by volume desc', result.items, result.pagination);
+});
+
+exports.sortRankAsc = asyncHandler(async (req, res) => {
+  const result = await coinService.sortSimple({ rank: 1, timestamp: -1 }, req.query.page, req.query.limit);
+  ok(res, 'Sorted by rank asc', result.items, result.pagination);
+});
+
+exports.sortReturnDesc = asyncHandler(async (req, res) => {
+  const result = await coinService.sortSimple({ dailyReturn: -1 }, req.query.page, req.query.limit);
+  ok(res, 'Sorted by return desc', result.items, result.pagination);
+});
+
+exports.filterHighPrice = asyncHandler(async (req, res) => {
+  const result = await coinService.filterAboveAvg('price', req.query.page, req.query.limit);
+  ok(res, 'High price vs average', { items: result.items, average: result.average }, result.pagination);
+});
+
+exports.filterLowPrice = asyncHandler(async (req, res) => {
+  const result = await coinService.filterBelowAvg('price', req.query.page, req.query.limit);
+  ok(res, 'Low price vs average', { items: result.items, average: result.average }, result.pagination);
+});
+
+exports.filterHighVolume = asyncHandler(async (req, res) => {
+  const result = await coinService.filterAboveAvg('volume', req.query.page, req.query.limit);
+  ok(res, 'High volume vs average', { items: result.items, average: result.average }, result.pagination);
+});
+
+exports.filterLowVolume = asyncHandler(async (req, res) => {
+  const result = await coinService.filterBelowAvg('volume', req.query.page, req.query.limit);
+  ok(res, 'Low volume vs average', { items: result.items, average: result.average }, result.pagination);
+});
+
+exports.filterHighMarketCap = asyncHandler(async (req, res) => {
+  const result = await coinService.filterHighMarketCap(req.query.page, req.query.limit);
+  ok(res, 'High market cap', result.items, result.pagination);
+});
+
+exports.filterLowMarketCap = asyncHandler(async (req, res) => {
+  const result = await coinService.filterLowMarketCap(req.query.page, req.query.limit);
+  ok(res, 'Low market cap', result.items, result.pagination);
+});
+
+exports.filterHighVolatility = asyncHandler(async (req, res) => {
+  const result = await coinService.filterHighVolatility(req.query.page, req.query.limit);
+  ok(res, 'High volatility', result.items, result.pagination);
+});
