@@ -64,3 +64,18 @@ exports.volatilityDistribution = asyncHandler(async (req, res) => {
   const data = await statsService.volatilityDistribution();
   ok(res, 'Volatility distribution', data, {});
 });
+
+exports.marketSummary = asyncHandler(async (req, res) => {
+  const data = await statsService.marketSummary();
+  ok(res, 'Market summary', data, {});
+});
+
+exports.dailyAnalysis = asyncHandler(async (req, res) => {
+  const data = await statsService.dailyAnalysis();
+  ok(res, 'Daily analysis', data, {});
+});
+
+exports.yearlyAnalysis = asyncHandler(async (req, res) => {
+  const data = await statsService.yearlyAnalysis();
+  ok(res, 'Yearly analysis', data, {});
+});
