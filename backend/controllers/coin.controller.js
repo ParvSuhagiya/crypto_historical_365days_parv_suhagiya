@@ -139,3 +139,53 @@ exports.getRecent = asyncHandler(async (req, res) => {
   const result = await coinService.getRecentUpdates(req.query.limit);
   ok(res, 'Recently updated', result.items, result.pagination);
 });
+
+exports.getRandom = asyncHandler(async (req, res) => {
+  const data = await coinService.getRandomCoin();
+  ok(res, 'Random coin', data, {});
+});
+
+exports.performance = asyncHandler(async (req, res) => {
+  const data = await coinService.performanceAnalytics(req.params.coinId);
+  ok(res, 'Performance analytics', data, {});
+});
+
+exports.volatility = asyncHandler(async (req, res) => {
+  const data = await coinService.volatilityAnalytics(req.params.coinId);
+  ok(res, 'Volatility analytics', data, {});
+});
+
+exports.marketCapCoin = asyncHandler(async (req, res) => {
+  const data = await coinService.marketCapDetails(req.params.coinId);
+  ok(res, 'Market cap details', data, {});
+});
+
+exports.volumeCoin = asyncHandler(async (req, res) => {
+  const data = await coinService.volumeDetails(req.params.coinId);
+  ok(res, 'Volume details', data, {});
+});
+
+exports.returnsCoin = asyncHandler(async (req, res) => {
+  const data = await coinService.returnsAnalytics(req.params.coinId);
+  ok(res, 'Returns analytics', data, {});
+});
+
+exports.priceCoin = asyncHandler(async (req, res) => {
+  const data = await coinService.currentPrice(req.params.coinId);
+  ok(res, 'Current price', data, {});
+});
+
+exports.compareTwo = asyncHandler(async (req, res) => {
+  const data = await coinService.compareCoins([req.params.coin1, req.params.coin2]);
+  ok(res, 'Comparison', data, {});
+});
+
+exports.compareThree = asyncHandler(async (req, res) => {
+  const data = await coinService.compareCoins([req.params.coin1, req.params.coin2, req.params.coin3]);
+  ok(res, 'Comparison', data, {});
+});
+
+exports.sortPriceAsc = asyncHandler(async (req, res) => {
+  const result = await coinService.sortSimple({ price: 1 }, req.query.page, req.query.limit);
+  ok(res, 'Sorted by price asc', result.items, result.pagination);
+});

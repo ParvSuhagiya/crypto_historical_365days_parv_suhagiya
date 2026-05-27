@@ -36,5 +36,13 @@ router.get('/filter/low-volume', coinController.filterLowVolume);
 router.get('/filter/high-market-cap', coinController.filterHighMarketCap);
 router.get('/filter/low-market-cap', coinController.filterLowMarketCap);
 router.get('/filter/high-volatility', coinController.filterHighVolatility);
+router.get('/filter/low-volatility', coinController.filterLowVolatility);
+router.get('/filter/high-return', coinController.filterHighReturn);
+router.get('/filter/negative-return', coinController.filterNegativeReturn);
+router.get('/filter/bullish', coinController.filterBullish);
+router.get('/filter/bearish', coinController.filterBearish);
+router.get('/filter/profitable', coinController.filterProfitable);
+router.get('/filter/loss-making', coinController.filterLossMaking);
+router.get('/filter/missing-values', coinController.filterMissingValues);
 
 module.exports = router;
