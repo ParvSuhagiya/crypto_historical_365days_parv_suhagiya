@@ -687,3 +687,107 @@ const filterHighVolatility = async (page, limit) => {
     throw err;
   }
 };
+
+const filterLowVolatility = async (page, limit) => {
+  try {
+    const avg = await avgOfField('volatility');
+    const filter = { ...notDeleted, volatility: { $lte: avg } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ volatility: 1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterHighReturn = async (page, limit) => {
+  try {
+    const avg = await avgOfField('dailyReturn');
+    const filter = { ...notDeleted, dailyReturn: { $gt: Math.max(0, avg) } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ dailyReturn: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterNegativeReturn = async (page, limit) => {
+  try {
+    const filter = { ...notDeleted, dailyReturn: { $lt: 0 } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ dailyReturn: 1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterBullish = async (page, limit) => {
+  try {
+    const filter = { ...notDeleted, dailyReturn: { $gt: 0 }, cumulativeReturn: { $gt: 0 } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ dailyReturn: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterBearish = async (page, limit) => {
+  try {
+    const filter = { ...notDeleted, dailyReturn: { $lt: 0 }, cumulativeReturn: { $lt: 0 } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ dailyReturn: 1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterProfitable = async (page, limit) => {
+  try {
+    const filter = { ...notDeleted, cumulativeReturn: { $gt: 0 } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ cumulativeReturn: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
