@@ -295,7 +295,6 @@ exports.predictions = asyncHandler(async (req, res) => {
   ok(res, 'Predictions', data, {});
 });
 
-
 exports.portfolioSimulate = asyncHandler(async (req, res) => {
   const data = await coinService.simulatePortfolio(req.body.allocations || req.body);
   ok(res, 'Portfolio simulation', data, {});
@@ -350,7 +349,6 @@ exports.systemHealth = asyncHandler(async (req, res) => {
   const data = await coinService.systemHealth();
   ok(res, 'Health', data, {});
 });
-
 
 exports.systemVersion = asyncHandler(async (req, res) => {
   const data = await coinService.systemVersion();

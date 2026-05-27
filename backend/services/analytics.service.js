@@ -95,3 +95,119 @@ const priceGrowth = async () => {
     throw err;
   }
 };
+
+const priceDrop = async () => {
+  try {
+    const items = await Coin.find({ ...notDeleted, dailyReturn: { $lt: 0 } })
+      .sort({ dailyReturn: 1 })
+      .limit(15)
+      .lean();
+    return { items, pagination: buildPagination(items.length, 1, 15) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const highestVolume = async () => {
+  try {
+    const items = await Coin.find(notDeleted).sort({ volume: -1 }).limit(10).lean();
+    return { items, pagination: buildPagination(items.length, 1, 10) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const lowestVolume = async () => {
+  try {
+    const items = await Coin.find(notDeleted).sort({ volume: 1 }).limit(10).lean();
+    return { items, pagination: buildPagination(items.length, 1, 10) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const averageVolume = async () => {
+  try {
+    const [r] = await Coin.aggregate([{ $match: notDeleted }, { $group: { _id: null, avg: { $avg: '$volume' } } }]);
+    return { averageVolume: r?.avg ?? 0 };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const volumeSpike = async () => {
+  try {
+    const [avgRow] = await Coin.aggregate([{ $match: notDeleted }, { $group: { _id: null, avg: { $avg: '$volume' } } }]);
+    const avg = avgRow?.avg || 1;
+    const items = await Coin.find({ ...notDeleted, volume: { $gte: avg * 3 } })
+      .sort({ volume: -1 })
+      .limit(20)
+      .lean();
+    return { baselineAvgVolume: avg, items, pagination: buildPagination(items.length, 1, 20) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const topReturns = async () => {
+  try {
+    const items = await Coin.find(notDeleted).sort({ dailyReturn: -1 }).limit(10).lean();
+    return { items, pagination: buildPagination(items.length, 1, 10) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const negativeReturns = async () => {
+  try {
+    const items = await Coin.find(notDeleted).sort({ dailyReturn: 1 }).limit(10).lean();
+    return { items, pagination: buildPagination(items.length, 1, 10) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const cumulativeReturns = async () => {
+  try {
+    const items = await Coin.find(notDeleted).sort({ cumulativeReturn: -1 }).limit(15).lean();
+    return { items, pagination: buildPagination(items.length, 1, 15) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const highVolatility = async () => {
+  try {
+    const items = await Coin.find(notDeleted).sort({ volatility: -1 }).limit(15).lean();
+    return { items, pagination: buildPagination(items.length, 1, 15) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+module.exports = {
+  highestPriceCoin,
+  lowestPriceCoin,
+  averagePrice,
+  priceHistory,
+  priceTrend,
+  priceGrowth,
+  priceDrop,
+  highestVolume,
+  lowestVolume,
+  averageVolume,
+  volumeSpike,
+  topReturns,
+  negativeReturns,
+  cumulativeReturns,
+  highVolatility,
+};
