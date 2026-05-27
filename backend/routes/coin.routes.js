@@ -70,4 +70,13 @@ router.post('/bulk-create', authMiddleware, adminMiddleware, coinController.bulk
 router.patch('/bulk-update', authMiddleware, adminMiddleware, coinController.bulkUpdate);
 router.delete('/bulk-delete', authMiddleware, adminMiddleware, coinController.bulkDelete);
 
+router.get('/name/:coinName', coinController.getByName);
+router.get('/symbol/:symbol', coinController.getBySymbol);
+router.get('/rank/:rank', coinController.getByRank);
+router.get('/month/:month', coinController.getByMonth);
+router.get('/date/:date', coinController.getByDate);
+
+// Per-coin analytics (coinId param)
+router.get('/performance/:coinId', coinController.performance);
+
 module.exports = router;
