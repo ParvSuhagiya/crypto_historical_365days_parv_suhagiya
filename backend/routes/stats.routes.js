@@ -14,5 +14,8 @@ router.get('/coin-count', statsController.coinCount);
 router.get('/rank-distribution', statsController.rankDistribution);
 router.get('/price-distribution', statsController.priceDistribution);
 router.get('/volatility-distribution', statsController.volatilityDistribution);
+router.get('/market-summary', statsController.marketSummary);
+router.get('/daily-analysis', statsController.dailyAnalysis);
+router.get('/yearly-analysis', statsController.yearlyAnalysis);
 
 module.exports = router;

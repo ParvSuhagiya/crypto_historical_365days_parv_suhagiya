@@ -791,3 +791,133 @@ const filterProfitable = async (page, limit) => {
     throw err;
   }
 };
+
+const filterLossMaking = async (page, limit) => {
+  try {
+    const filter = { ...notDeleted, cumulativeReturn: { $lt: 0 } };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ cumulativeReturn: 1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const filterMissingValues = async (page, limit) => {
+  try {
+    const filter = {
+      ...notDeleted,
+      $or: [
+        { high: null },
+        { low: null },
+        { high: { $exists: false } },
+        { low: { $exists: false } },
+      ],
+    };
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(filter).sort({ timestamp: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments(filter),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const sortSimple = async (sortObj, page, limit) => {
+  try {
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 10));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find(notDeleted).sort(sortObj).skip(skip).limit(l).lean(),
+      Coin.countDocuments(notDeleted),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const performanceAnalytics = async (coinId) => {
+  try {
+    const rows = await Coin.find({ ...notDeleted, coinId: String(coinId) }).sort({ timestamp: 1 }).lean();
+    if (!rows.length) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    const prices = rows.map((r) => r.price);
+    const returns = rows.map((r) => r.dailyReturn);
+    const minP = Math.min(...prices);
+    const maxP = Math.max(...prices);
+    const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
+    const last = rows[rows.length - 1];
+    const first = rows[0];
+    const totalReturnPct = first.price ? ((last.price - first.price) / first.price) * 100 : 0;
+    return {
+      coinId,
+      recordCount: rows.length,
+      priceRange: { min: minP, max: maxP, average: avgP },
+      latest: last,
+      approxTotalReturnPercent: totalReturnPct,
+      avgDailyReturn: returns.reduce((a, b) => a + b, 0) / returns.length,
+    };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const volatilityAnalytics = async (coinId) => {
+  try {
+    const rows = await Coin.find({ ...notDeleted, coinId: String(coinId) }).sort({ timestamp: 1 }).lean();
+    if (!rows.length) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    const vols = rows.map((r) => r.volatility);
+    const avgV = vols.reduce((a, b) => a + b, 0) / vols.length;
+    const maxV = Math.max(...vols);
+    return { coinId, averageVolatility: avgV, maxVolatility: maxV, samples: rows.length };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const marketCapDetails = async (coinId) => {
+  try {
+    const rows = await Coin.find({ ...notDeleted, coinId: String(coinId) }).sort({ timestamp: 1 }).lean();
+    if (!rows.length) {
+      const e = new Error('Coin not found');
+      e.statusCode = 404;
+      throw e;
+    }
+    const caps = rows.map((r) => r.marketCap);
+    return {
+      coinId,
+      latestMarketCap: rows[rows.length - 1].marketCap,
+      avgMarketCap: caps.reduce((a, b) => a + b, 0) / caps.length,
+      maxMarketCap: Math.max(...caps),
+    };
+  } catch (err) {
+    if (err.statusCode) throw err;
+    err.statusCode = 500;
+    throw err;
+  }
+};
