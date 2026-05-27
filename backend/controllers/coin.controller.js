@@ -84,3 +84,58 @@ exports.getLatest = asyncHandler(async (req, res) => {
   const result = await coinService.getLatest(req.query.limit);
   ok(res, 'Latest coins', result.items, result.pagination);
 });
+
+exports.getHistory = asyncHandler(async (req, res) => {
+  const result = await coinService.getHistoryByCoinId(req.params.coinId, req.query.page, req.query.limit);
+  ok(res, 'Coin history', result.items, result.pagination);
+});
+
+exports.getHistoryMonth = asyncHandler(async (req, res) => {
+  const result = await coinService.getHistoryByCoinIdAndMonth(
+    req.params.coinId,
+    req.params.month,
+    req.query.page,
+    req.query.limit
+  );
+  ok(res, 'Monthly coin history', result.items, result.pagination);
+});
+
+exports.topMarketCap = asyncHandler(async (req, res) => {
+  const result = await coinService.topByField('marketCap', -1, req.query.limit);
+  ok(res, 'Top market cap', result.items, result.pagination);
+});
+
+exports.topVolume = asyncHandler(async (req, res) => {
+  const result = await coinService.topByField('volume', -1, req.query.limit);
+  ok(res, 'Top volume', result.items, result.pagination);
+});
+
+exports.topGainers = asyncHandler(async (req, res) => {
+  const result = await coinService.topByField('dailyReturn', -1, req.query.limit);
+  ok(res, 'Top gainers', result.items, result.pagination);
+});
+
+exports.topLosers = asyncHandler(async (req, res) => {
+  const result = await coinService.topByField('dailyReturn', 1, req.query.limit);
+  ok(res, 'Top losers', result.items, result.pagination);
+});
+
+exports.getOldest = asyncHandler(async (req, res) => {
+  const result = await coinService.getOldest(req.query.limit);
+  ok(res, 'Oldest records', result.items, result.pagination);
+});
+
+exports.getNewest = asyncHandler(async (req, res) => {
+  const result = await coinService.getNewest(req.query.limit);
+  ok(res, 'Newest records', result.items, result.pagination);
+});
+
+exports.getTrending = asyncHandler(async (req, res) => {
+  const result = await coinService.getTrending(req.query.limit);
+  ok(res, 'Trending coins', result.items, result.pagination);
+});
+
+exports.getRecent = asyncHandler(async (req, res) => {
+  const result = await coinService.getRecentUpdates(req.query.limit);
+  ok(res, 'Recently updated', result.items, result.pagination);
+});

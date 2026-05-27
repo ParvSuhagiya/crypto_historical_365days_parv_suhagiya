@@ -24,5 +24,17 @@ router.get('/heatmap', coinController.heatmap);
 router.get('/market-status', coinController.marketStatus);
 router.get('/performance/top-monthly', coinController.topMonthly);
 router.get('/performance/top-yearly', coinController.topYearly);
+router.get('/alerts/high-volatility', coinController.alertsHighVol);
+router.get('/alerts/market-drop', coinController.alertsMarketDrop);
+router.post('/report', coinController.submitReport);
+
+// Filters
+router.get('/filter/high-price', coinController.filterHighPrice);
+router.get('/filter/low-price', coinController.filterLowPrice);
+router.get('/filter/high-volume', coinController.filterHighVolume);
+router.get('/filter/low-volume', coinController.filterLowVolume);
+router.get('/filter/high-market-cap', coinController.filterHighMarketCap);
+router.get('/filter/low-market-cap', coinController.filterLowMarketCap);
+router.get('/filter/high-volatility', coinController.filterHighVolatility);
 
 module.exports = router;
