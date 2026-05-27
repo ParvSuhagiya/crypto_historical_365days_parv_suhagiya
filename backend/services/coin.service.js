@@ -1199,3 +1199,170 @@ const submitReport = async (body) => {
     throw err;
   }
 };
+
+
+const clearCache = async () => {
+  try {
+    return { cleared: true, at: new Date().toISOString() };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const systemHealth = async () => {
+  try {
+    const state = mongoose.connection.readyState;
+    return {
+      ok: state === 1,
+      dbReadyState: state,
+      uptimeSec: Math.round(process.uptime()),
+      timestamp: new Date().toISOString(),
+    };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const systemVersion = async () => ({
+  name: 'crypto-market-analytics-api',
+  version: '1.0.0',
+});
+
+const publicConfig = async () => ({
+  apiVersion: 'v1',
+  environment: process.env.NODE_ENV || 'development',
+});
+
+const exportCsv = async (query) => {
+  try {
+    const { filter, sort } = buildCoinListQuery({ ...query, limit: '5000', page: '1' });
+    const rows = await Coin.find(filter).sort(sort).limit(5000).lean();
+    const headers = [
+      'coinId',
+      'name',
+      'symbol',
+      'rank',
+      'date',
+      'month',
+      'price',
+      'marketCap',
+      'volume',
+      'dailyReturn',
+      'cumulativeReturn',
+      'volatility',
+    ];
+    const lines = [headers.join(',')];
+    for (const r of rows) {
+      lines.push(
+        headers
+          .map((h) => {
+            const v = r[h];
+            if (v === undefined || v === null) return '';
+            const s = String(v).replace(/"/g, '""');
+            return s.includes(',') ? `"${s}"` : s;
+          })
+          .join(',')
+      );
+    }
+    return { filename: 'coins-export.csv', csv: lines.join('\n'), count: rows.length };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const exportJson = async (query) => {
+  try {
+    const { filter, sort } = buildCoinListQuery({ ...query, limit: '2000', page: '1' });
+    const rows = await Coin.find(filter).sort(sort).limit(2000).lean();
+    return { count: rows.length, records: rows };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+const escapeRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const getAllCoinsForAdmin = async (page, limit) => {
+  try {
+    const p = Math.max(1, Number(page) || 1);
+    const l = Math.min(100, Math.max(1, Number(limit) || 20));
+    const skip = (p - 1) * l;
+    const [items, total] = await Promise.all([
+      Coin.find({}).sort({ updatedAt: -1 }).skip(skip).limit(l).lean(),
+      Coin.countDocuments({}),
+    ]);
+    return { items, pagination: buildPagination(total, p, l) };
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+};
+
+module.exports = {
+  getAllCoins,
+  getCoinByMongoId,
+  createCoin,
+  replaceCoin,
+  patchCoin,
+  softDeleteCoin,
+  coinExists,
+  bulkCreateCoins,
+  bulkUpdateCoins,
+  bulkDeleteCoins,
+  getByName,
+  getBySymbol,
+  getByRank,
+  getByMonth,
+  getByDate,
+  getLatest,
+  getHistoryByCoinId,
+  getHistoryByCoinIdAndMonth,
+  topByField,
+  getOldest,
+  getNewest,
+  getTrending,
+  getRecentUpdates,
+  getRandomCoin,
+  filterAboveAvg,
+  filterBelowAvg,
+  filterHighMarketCap,
+  filterLowMarketCap,
+  filterHighVolatility,
+  filterLowVolatility,
+  filterHighReturn,
+  filterNegativeReturn,
+  filterBullish,
+  filterBearish,
+  filterProfitable,
+  filterLossMaking,
+  filterMissingValues,
+  sortSimple,
+  performanceAnalytics,
+  volatilityAnalytics,
+  marketCapDetails,
+  volumeDetails,
+  returnsAnalytics,
+  currentPrice,
+  compareCoins,
+  getRecommendations,
+  getPredictions,
+  simulatePortfolio,
+  getHeatmap,
+  getMarketStatus,
+  topMonthlyPerformers,
+  topYearlyPerformers,
+  highVolatilityAlerts,
+  marketDropAlerts,
+  submitReport,
+  clearCache,
+  systemHealth,
+  systemVersion,
+  publicConfig,
+  exportCsv,
+  exportJson,
+  getAllCoinsForAdmin,
+};
