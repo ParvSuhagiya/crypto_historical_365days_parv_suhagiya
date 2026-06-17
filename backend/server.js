@@ -45,7 +45,6 @@ app.get('/api/v1', (req, res) => {
 app.use('/api/v1/coins', coinRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/search', searchRoutes);
-app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/stats', statsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/jwt', jwtRoutes);
