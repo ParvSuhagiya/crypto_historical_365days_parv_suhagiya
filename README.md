@@ -128,8 +128,14 @@ npm start
 
 # Base URL
 
+### Local Development
 ```http
 http://localhost:5000/api/v1
+```
+
+### Production / Live
+```http
+https://crypto-historical-365days-parv-suhagiya.onrender.com/api/v1
 ```
 
 ---
