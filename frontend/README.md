@@ -16,7 +16,7 @@ Production-grade React frontend for the Crypto Market Analytics platform. All da
 ## Prerequisites
 
 - Node.js 18+
-- Backend API running at `http://localhost:5000/api/v1`
+- Backend API (defaults to Render: `https://crypto-historical-365days-parv-suhagiya.onrender.com/api/v1` or local: `http://localhost:5000/api/v1` via environment variable)
 
 ## Getting Started
 
