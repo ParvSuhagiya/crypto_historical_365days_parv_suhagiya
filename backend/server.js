@@ -15,7 +15,6 @@ const adminRoutes = require('./routes/admin.routes');
 const jwtRoutes = require('./routes/jwt.routes');
 const middlewareRoutes = require('./routes/middleware.routes');
 const protectedRoutes = require('./routes/protected.routes');
-app.use('/api/v1/analytics', analyticsRoutes);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -52,6 +51,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/jwt', jwtRoutes);
 app.use('/api/v1/middleware', middlewareRoutes);
 app.use('/api/v1/protected', protectedRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
