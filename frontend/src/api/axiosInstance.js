@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://crypto-historical-365days-parv-suhagiya.onrender.com',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://crypto-historical-365days-parv-suhagiya.onrender.com/api/v1',
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
 });
